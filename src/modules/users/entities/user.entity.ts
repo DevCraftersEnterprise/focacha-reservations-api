@@ -25,7 +25,7 @@ export class User {
     })
     role: Role;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', nullable: true })
     branchId: string;
 
     @Column({ default: true })
