@@ -83,7 +83,7 @@ export class BranchesService {
             throw new NotFoundException('Branch not found');
         }
 
-        const assignedUsers = await this.usersService.assignBranchToCashiers(
+        const result = await this.usersService.syncBranchCashiers(
             branch.id,
             dto.cashierIds
         );
@@ -91,7 +91,8 @@ export class BranchesService {
         return {
             message: 'Cashiers assigned successfully',
             branchId: branch.id,
-            cashierIds: assignedUsers.map(u => u.id)
+            assignedCashierIds: result.assigned.map(c => c.id),
+            unassignedCashierIds: result.unassigned.map(c => c.id)
         }
     }
 

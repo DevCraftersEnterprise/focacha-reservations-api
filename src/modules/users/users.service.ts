@@ -52,6 +52,17 @@ export class UsersService {
         });
     }
 
+    async findCashiersByBranchId(branchId: string): Promise<User[]> {
+        return this.usersRepository.find({
+            where: {
+                branchId,
+                role: Role.CASHIER,
+                deletedAt: IsNull(),
+            },
+            relations: { branch: true },
+        })
+    }
+
     async create(createUserDto: CreateUserDto): Promise<User> {
         const existingUser = await this.findByEmail(createUserDto.email);
 
@@ -120,7 +131,10 @@ export class UsersService {
         return await this.usersRepository.save(user);
     }
 
-    async assignBranchToCashiers(branchId: string, cashierIds: string[]): Promise<User[]> {
+    async syncBranchCashiers(branchId: string, cashierIds: string[]): Promise<{
+        assigned: User[],
+        unassigned: User[]
+    }> {
         const branch = await this.branchesService.findById(branchId);
 
         if (!branch) {
@@ -128,23 +142,47 @@ export class UsersService {
         }
 
         const uniqueIds = [...new Set(cashierIds)];
-        const users = await this.findByIds(uniqueIds);
+        const targetCashiers = await this.findByIds(uniqueIds);
 
-        if (users.length !== uniqueIds.length) {
+        if (targetCashiers.length !== uniqueIds.length) {
             throw new NotFoundException('One or more users not found');
         }
 
-        const invalidUsers = users.filter(user => user.role !== Role.CASHIER);
+        const invalidUsers = targetCashiers.filter(user => user.role !== Role.CASHIER);
 
         if (invalidUsers.length > 0) {
             throw new ConflictException('All users must have the CASHIER role');
         }
 
-        for (const user of users) {
-            user.branchId = branch.id;
+        const currentCashiers = await this.findCashiersByBranchId(branchId);
+
+        const currentIds = new Set(currentCashiers.map(user => user.id));
+        const targetIds = new Set(uniqueIds);
+
+        const usersToUnassign = currentCashiers.filter(user => !targetIds.has(user.id));
+        const usersToAssignOrKeep = targetCashiers;
+
+        for (const user of usersToUnassign) {
+            user.branchId = null;
+            user.branch = null;
         }
 
-        return await this.usersRepository.save(users);
+        for (const user of usersToAssignOrKeep) {
+            user.branchId = branch.id;
+            user.branch = branch;
+        }
+
+        const usersToSave = [...usersToUnassign, ...usersToAssignOrKeep];
+
+        if (usersToSave.length > 0) {
+            await this.usersRepository.save(usersToSave);
+
+        }
+
+        return {
+            assigned: usersToAssignOrKeep,
+            unassigned: usersToUnassign
+        };
     }
 
     async unassignCashier(userId: string): Promise<User> {
