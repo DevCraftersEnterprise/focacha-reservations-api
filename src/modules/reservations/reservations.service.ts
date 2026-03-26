@@ -11,6 +11,8 @@ import { ReservationStatus } from '@common/enums/reservation-status.enum';
 import { Role } from '@common/enums/role.enum';
 import { CancelReservationDto } from './dto/cancel-reservation.dto';
 import { FindReservationsDto } from './dto/find-reservations.dto';
+import { ReservationsCalendarDto } from './dto/reservations-calendar.dto';
+import { ReservationsDayDetailDto } from './dto/reservations-day-detail.dto';
 
 @Injectable()
 export class ReservationsService {
@@ -21,39 +23,6 @@ export class ReservationsService {
     private readonly zonesService: ZonesService,
     private readonly usersService: UsersService
   ) { }
-
-  async findById(id: string): Promise<Reservation | null> {
-    return this.reservationsRepository.findOne({
-      where: { id },
-      relations: {
-        branch: true,
-        zone: true,
-        createdByUser: true,
-        updatedByUser: true,
-        cancelledByUser: true,
-      }
-    })
-  }
-
-  async findOneForUser(
-    id: string,
-    authenticatedUserId: string,
-    authenticatedUserRole: Role,
-  ): Promise<Reservation> {
-    const reservation = await this.findById(id);
-
-    if (!reservation) {
-      throw new NotFoundException('Reservación no encontrada');
-    }
-
-    await this.resolveBranchIdByRole(
-      authenticatedUserId,
-      authenticatedUserRole,
-      reservation.branchId,
-    );
-
-    return reservation;
-  }
 
   private normalizeTime(value: string): string {
     return value.length === 5 ? `${value}:00` : value;
@@ -130,6 +99,126 @@ export class ReservationsService {
     }
 
     return user.branchId;
+  }
+
+  private async assertBranchAccess(
+    authenticatedUserId: string,
+    authenticatedUserRole: Role,
+    branchId: string,
+  ): Promise<void> {
+    await this.resolveBranchIdByRole(
+      authenticatedUserId,
+      authenticatedUserRole,
+      branchId
+    );
+  }
+
+  async findById(id: string): Promise<Reservation | null> {
+    return this.reservationsRepository.findOne({
+      where: { id },
+      relations: {
+        branch: true,
+        zone: true,
+        createdByUser: true,
+        updatedByUser: true,
+        cancelledByUser: true,
+      }
+    })
+  }
+
+  async findOneForUser(
+    id: string,
+    authenticatedUserId: string,
+    authenticatedUserRole: Role,
+  ): Promise<Reservation> {
+    const reservation = await this.findById(id);
+
+    if (!reservation) {
+      throw new NotFoundException('Reservación no encontrada');
+    }
+
+    await this.resolveBranchIdByRole(
+      authenticatedUserId,
+      authenticatedUserRole,
+      reservation.branchId,
+    );
+
+    return reservation;
+  }
+
+  async getCalendarSummary(
+    dto: ReservationsCalendarDto,
+    authenticatedUserId: string,
+    authenticatedUserRole: Role,
+  ) {
+    await this.assertBranchAccess(
+      authenticatedUserId,
+      authenticatedUserRole,
+      dto.branchId,
+    );
+
+    const month = dto.month.toString().padStart(2, '0');
+    const startDate = `${dto.year}-${month}-01`;
+
+    const nextMonthDate = new Date(dto.year, dto.month, 1);
+    const nextYear = nextMonthDate.getFullYear();
+    const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+    const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+    const endDateExclusive = `${nextYear}-${nextMonth}-${nextDay}`;
+
+    const raw = await this.reservationsRepository
+      .createQueryBuilder('reservation')
+      .select('reservation.reservationDate', 'date')
+      .addSelect('COUNT(reservation.id)', 'count')
+      .where('reservation.branchId = :branchId', { branchId: dto.branchId })
+      .andWhere('reservation.reservationDate >= :startDate', { startDate })
+      .andWhere('reservation.reservationDate < :endDateExclusive', {
+        endDateExclusive,
+      })
+      .andWhere('reservation.status = :status', {
+        status: ReservationStatus.ACTIVE,
+      })
+      .groupBy('reservation.reservationDate')
+      .orderBy('reservation.reservationDate', 'ASC')
+      .getRawMany();
+
+    return raw.map((item) => ({
+      date: item.date,
+      count: Number(item.count),
+    }));
+  }
+
+  async getDayDetail(
+    dto: ReservationsDayDetailDto,
+    authenticatedUserId: string,
+    authenticatedUserRole: Role,
+  ) {
+    await this.assertBranchAccess(
+      authenticatedUserId,
+      authenticatedUserRole,
+      dto.branchId,
+    );
+
+    const items = await this.reservationsRepository
+      .createQueryBuilder('reservation')
+      .leftJoinAndSelect('reservation.branch', 'branch')
+      .leftJoinAndSelect('reservation.zone', 'zone')
+      .leftJoinAndSelect('reservation.createdByUser', 'createdByUser')
+      .leftJoinAndSelect('reservation.updatedByUser', 'updatedByUser')
+      .leftJoinAndSelect('reservation.cancelledByUser', 'cancelledByUser')
+      .where('reservation.branchId = :branchId', { branchId: dto.branchId })
+      .andWhere('reservation.reservationDate = :date', { date: dto.date })
+      .orderBy('reservation.reservationTime', 'ASC')
+      .getMany();
+
+    return {
+      date: dto.date,
+      branchId: dto.branchId,
+      total: items.length,
+      activeCount: items.filter((item) => item.status === ReservationStatus.ACTIVE).length,
+      cancelledCount: items.filter((item) => item.status === ReservationStatus.CANCELLED).length,
+      items,
+    };
   }
 
   async create(
