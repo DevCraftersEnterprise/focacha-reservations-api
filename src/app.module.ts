@@ -7,6 +7,7 @@ import { AuthService } from './modules/auth/auth.service';
 import { AuthController } from './modules/auth/auth.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { BranchesModule } from './modules/branches/branches.module';
+import { ZonesModule } from './modules/zones/zones.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { BranchesModule } from './modules/branches/branches.module';
     UsersModule,
     AuthModule,
     BranchesModule,
+    ZonesModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
