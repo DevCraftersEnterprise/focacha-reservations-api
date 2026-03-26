@@ -12,12 +12,12 @@ export class Zone {
     @Column({ type: 'integer', nullable: true })
     capacity: number | null;
 
-    @Column({ type: 'varchar', nullable: true })
-    branchId: string | null;
+    @Column({ type: 'varchar' })
+    branchId: string;
 
-    @ManyToOne(() => Branch, { nullable: true })
+    @ManyToOne(() => Branch, { nullable: false })
     @JoinColumn({ name: 'branchId' })
-    branch: Branch | null;
+    branch: Branch;
 
     @Column({ default: true })
     isActive: boolean;

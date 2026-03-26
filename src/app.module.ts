@@ -8,6 +8,7 @@ import { AuthController } from './modules/auth/auth.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { BranchesModule } from './modules/branches/branches.module';
 import { ZonesModule } from './modules/zones/zones.module';
+import { ReservationsModule } from './modules/reservations/reservations.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ZonesModule } from './modules/zones/zones.module';
     AuthModule,
     BranchesModule,
     ZonesModule,
+    ReservationsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
