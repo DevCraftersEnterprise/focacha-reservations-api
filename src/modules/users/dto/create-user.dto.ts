@@ -1,4 +1,5 @@
 import { Role } from "@common/enums/role.enum";
+import { Type } from "class-transformer";
 import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validator";
 
 export class CreateUserDto {
@@ -19,5 +20,7 @@ export class CreateUserDto {
     role: Role;
 
     @IsOptional()
+    @Type(() => String)
+    @IsString()
     branchId?: string;
 }

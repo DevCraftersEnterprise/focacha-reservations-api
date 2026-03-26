@@ -1,5 +1,6 @@
 import { Role } from "@common/enums/role.enum";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Branch } from "@modules/branches/entities/branch.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('users')
 export class User {
@@ -26,7 +27,11 @@ export class User {
     role: Role;
 
     @Column({ type: 'varchar', nullable: true })
-    branchId: string;
+    branchId: string | null;
+
+    @ManyToOne(() => Branch, branch => branch.cashiers, { nullable: true })
+    @JoinColumn({ name: 'branchId' })
+    branch: Branch | null;
 
     @Column({ default: true })
     isActive: boolean;

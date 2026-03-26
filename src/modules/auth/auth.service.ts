@@ -42,7 +42,7 @@ export class AuthService {
             sub: user.id,
             email: user.email,
             role: user.role,
-            branchId: user.branchId
+            branchId: user.branch?.id
         };
 
         const accessToken = await this.jwtService.signAsync(payload);
@@ -55,7 +55,7 @@ export class AuthService {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-                branchId: user.branchId
+                branchId: user.branch?.id
             }
         };
     }
@@ -73,7 +73,7 @@ export class AuthService {
             lastName: user.lastName,
             email: user.email,
             role: user.role,
-            branchId: user.branchId,
+            branchId: user.branch?.id,
             isActive: user.isActive,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
