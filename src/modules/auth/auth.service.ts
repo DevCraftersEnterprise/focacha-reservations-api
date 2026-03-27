@@ -55,7 +55,11 @@ export class AuthService {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-                branchId: user.branch?.id
+                branchId: user.branch?.id,
+                branch: {
+                    id: user.branch?.id,
+                    name: user.branch?.name
+                }
             }
         };
     }
@@ -74,6 +78,10 @@ export class AuthService {
             email: user.email,
             role: user.role,
             branchId: user.branch?.id,
+            branch: {
+                id: user.branch?.id,
+                name: user.branch?.name
+            },
             isActive: user.isActive,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,

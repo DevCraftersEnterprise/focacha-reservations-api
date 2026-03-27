@@ -126,9 +126,11 @@ export class UsersService {
             user.passwordHash = await bcrypt.hash(updateUserDto.password, 10);
         }
 
-        Object.assign(user, updateUserDto);
+        const updatedUser = await this.usersRepository.update(id, {
+            ...updateUserDto
+        });
 
-        return await this.usersRepository.save(user);
+        return await this.usersRepository.save(updatedUser.raw);
     }
 
     async syncBranchCashiers(branchId: string, cashierIds: string[]): Promise<{
