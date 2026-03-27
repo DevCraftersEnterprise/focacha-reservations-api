@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Zone } from './entities/zone.entity';
 import { IsNull, Repository } from 'typeorm';
 import { BranchesService } from '@modules/branches/branches.service';
+import { Branch } from '@modules/branches/entities/branch.entity';
 
 @Injectable()
 export class ZonesService {
@@ -81,10 +82,11 @@ export class ZonesService {
     const targetBranchId = updateZoneDto.branchId ?? zone.branchId;
     const targetName = updateZoneDto.name ?? zone.name;
 
+    let newBranch: Branch | null = null;
     if (updateZoneDto.branchId !== undefined) {
-      const branch = await this.branchesService.findById(updateZoneDto.branchId);
+      newBranch = await this.branchesService.findById(updateZoneDto.branchId);
 
-      if (!branch) {
+      if (!newBranch) {
         throw new NotFoundException('Branch not found');
       }
     }
@@ -101,9 +103,11 @@ export class ZonesService {
       throw new ConflictException('Zone with the same name already exists in this branch');
     }
 
-    Object.assign(zone, updateZoneDto);
+    const updatedZone = await this.zonesRepository.update(id, {
+      ...updateZoneDto
+    });
 
-    return await this.zonesRepository.save(zone);
+    return await this.zonesRepository.save(updatedZone.raw);
   }
 
   async remove(id: string): Promise<void> {
