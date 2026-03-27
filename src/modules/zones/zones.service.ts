@@ -50,7 +50,7 @@ export class ZonesService {
   async create(createZoneDto: CreateZoneDto): Promise<Zone> {
     const branch = await this.branchesService.findById(createZoneDto.branchId);
 
-    if (branch) {
+    if (!branch) {
       throw new NotFoundException('Branch not found');
     }
 
