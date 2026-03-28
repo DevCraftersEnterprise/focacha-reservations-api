@@ -6,12 +6,9 @@ import { Branch } from './entities/branch.entity';
 import { UsersModule } from '@modules/users/users.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Branch]),
-    forwardRef(() => UsersModule),
-  ],
+  imports: [TypeOrmModule.forFeature([Branch]), forwardRef(() => UsersModule)],
   controllers: [BranchesController],
   providers: [BranchesService],
   exports: [BranchesService],
 })
-export class BranchesModule { }
+export class BranchesModule {}

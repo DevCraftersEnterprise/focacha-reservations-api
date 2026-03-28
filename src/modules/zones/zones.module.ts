@@ -9,6 +9,6 @@ import { BranchesModule } from '@modules/branches/branches.module';
   imports: [TypeOrmModule.forFeature([Zone]), BranchesModule],
   controllers: [ZonesController],
   providers: [ZonesService],
-  exports: [ZonesService]
+  exports: [ZonesService],
 })
-export class ZonesModule { }
+export class ZonesModule {}

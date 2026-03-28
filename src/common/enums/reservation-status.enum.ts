@@ -1,4 +1,4 @@
 export enum ReservationStatus {
-    ACTIVE = 'ACTIVE',
-    CANCELLED = 'CANCELLED',
+  ACTIVE = 'ACTIVE',
+  CANCELLED = 'CANCELLED',
 }

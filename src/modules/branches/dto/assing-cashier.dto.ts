@@ -1,9 +1,9 @@
-import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsString } from "class-validator";
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsString } from 'class-validator';
 
 export class AssignCashiersDto {
-    @IsArray()
-    @Type(() => String)
-    @IsString({ each: true })
-    cashierIds: string[];
+  @IsArray()
+  @Type(() => String)
+  @IsString({ each: true })
+  cashierIds: string[];
 }

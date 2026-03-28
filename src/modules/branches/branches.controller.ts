@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, UseGuards, Param, ParseUUIDPipe, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  UseGuards,
+  Param,
+  ParseUUIDPipe,
+  Body,
+} from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
@@ -12,7 +22,7 @@ import { AssignCashiersDto } from './dto/assing-cashier.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class BranchesController {
-  constructor(private readonly branchesService: BranchesService) { }
+  constructor(private readonly branchesService: BranchesService) {}
 
   @Get()
   findAll() {
@@ -35,7 +45,10 @@ export class BranchesController {
   }
 
   @Patch(':id/assign-cashiers')
-  assignCashiers(@Param('id', ParseUUIDPipe) id: string, @Body() dto: AssignCashiersDto) {
+  assignCashiers(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AssignCashiersDto,
+  ) {
     return this.branchesService.assignCashiers(id, dto);
   }
 

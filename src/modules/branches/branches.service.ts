@@ -1,4 +1,10 @@
-import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Branch } from './entities/branch.entity';
 import { IsNull, Repository } from 'typeorm';
@@ -9,104 +15,103 @@ import { AssignCashiersDto } from './dto/assing-cashier.dto';
 
 @Injectable()
 export class BranchesService {
+  constructor(
+    @InjectRepository(Branch)
+    private readonly branchesRepository: Repository<Branch>,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+  ) {}
 
-    constructor(
-        @InjectRepository(Branch)
-        private readonly branchesRepository: Repository<Branch>,
-        @Inject(forwardRef(() => UsersService))
-        private readonly usersService: UsersService
-    ) { }
+  async findById(id: string): Promise<Branch | null> {
+    return this.branchesRepository.findOne({
+      where: { id, deletedAt: IsNull() },
+      relations: { cashiers: true },
+    });
+  }
 
-    async findById(id: string): Promise<Branch | null> {
-        return this.branchesRepository.findOne({
-            where: { id, deletedAt: IsNull() },
-            relations: { cashiers: true }
-        });
+  async findAll(): Promise<Branch[]> {
+    return this.branchesRepository.find({
+      where: { deletedAt: IsNull() },
+      relations: { cashiers: true },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async create(createBranchDto: CreateBranchDto): Promise<Branch> {
+    const existing = await this.branchesRepository.findOne({
+      where: {
+        name: createBranchDto.name,
+        deletedAt: IsNull(),
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException('Branch with this name already exists');
     }
 
-    async findAll(): Promise<Branch[]> {
-        return this.branchesRepository.find({
-            where: { deletedAt: IsNull() },
-            relations: { cashiers: true },
-            order: { createdAt: 'DESC' }
-        });
+    const branch = this.branchesRepository.create({
+      ...createBranchDto,
+    });
+
+    return await this.branchesRepository.save(branch);
+  }
+
+  async update(id: string, updateBranchDto: UpdateBranchDto): Promise<Branch> {
+    const branch = await this.findById(id);
+
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
     }
 
-    async create(createBranchDto: CreateBranchDto): Promise<Branch> {
-        const existing = await this.branchesRepository.findOne({
-            where: {
-                name: createBranchDto.name,
-                deletedAt: IsNull()
-            }
-        });
+    if (updateBranchDto.name && updateBranchDto.name !== branch.name) {
+      const existing = await this.branchesRepository.findOne({
+        where: {
+          name: updateBranchDto.name,
+          deletedAt: IsNull(),
+        },
+      });
 
-        if (existing) {
-            throw new ConflictException('Branch with this name already exists');
-        }
-
-        const branch = this.branchesRepository.create({
-            ...createBranchDto
-        });
-
-        return await this.branchesRepository.save(branch);
+      if (existing) {
+        throw new ConflictException('Branch with this name already exists');
+      }
     }
 
-    async update(id: string, updateBranchDto: UpdateBranchDto): Promise<Branch> {
-        const branch = await this.findById(id);
+    Object.assign(branch, updateBranchDto);
 
-        if (!branch) {
-            throw new NotFoundException('Branch not found');
-        }
+    return await this.branchesRepository.save(branch);
+  }
 
-        if (updateBranchDto.name && updateBranchDto.name !== branch.name) {
-            const existing = await this.branchesRepository.findOne({
-                where: {
-                    name: updateBranchDto.name,
-                    deletedAt: IsNull()
-                }
-            });
+  async assignCashiers(id: string, dto: AssignCashiersDto) {
+    const branch = await this.findById(id);
 
-            if (existing) {
-                throw new ConflictException('Branch with this name already exists');
-            }
-        }
-
-        Object.assign(branch, updateBranchDto);
-
-        return await this.branchesRepository.save(branch);
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
     }
 
-    async assignCashiers(id: string, dto: AssignCashiersDto) {
-        const branch = await this.findById(id);
+    const result = await this.usersService.syncBranchCashiers(
+      branch.id,
+      dto.cashierIds,
+    );
 
-        if (!branch) {
-            throw new NotFoundException('Branch not found');
-        }
+    return {
+      message: 'Cashiers assigned successfully',
+      branchId: branch.id,
+      assignedCashierIds: result.assigned.map((c) => c.id),
+      unassignedCashierIds: result.unassigned.map((c) => c.id),
+    };
+  }
 
-        const result = await this.usersService.syncBranchCashiers(
-            branch.id,
-            dto.cashierIds
-        );
+  async remove(id: string): Promise<void> {
+    const branch = await this.findById(id);
 
-        return {
-            message: 'Cashiers assigned successfully',
-            branchId: branch.id,
-            assignedCashierIds: result.assigned.map(c => c.id),
-            unassignedCashierIds: result.unassigned.map(c => c.id)
-        }
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
     }
 
-    async remove(id: string): Promise<void> {
-        const branch = await this.findById(id);
+    await this.branchesRepository.softRemove(branch);
+  }
 
-        if (!branch) {
-            throw new NotFoundException('Branch not found');
-        }
-
-        await this.branchesRepository.softRemove(branch);
-    }
-
-    async restore(id: string): Promise<void> {
-        await this.branchesRepository.restore(id);
-    }
+  async restore(id: string): Promise<void> {
+    await this.branchesRepository.restore(id);
+  }
 }

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ZonesService } from './zones.service';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
@@ -10,7 +20,7 @@ import { Role } from '@common/enums/role.enum';
 @Controller('zones')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ZonesController {
-  constructor(private readonly zonesService: ZonesService) { }
+  constructor(private readonly zonesService: ZonesService) {}
 
   @Get()
   @Roles(Role.ADMIN, Role.CASHIER)
@@ -38,7 +48,10 @@ export class ZonesController {
 
   @Patch(':id')
   @Roles(Role.ADMIN)
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateZoneDto: UpdateZoneDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateZoneDto: UpdateZoneDto,
+  ) {
     return this.zonesService.update(id, updateZoneDto);
   }
 

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,19 +13,18 @@ import { Branch } from '@modules/branches/entities/branch.entity';
 
 @Injectable()
 export class ZonesService {
-
   constructor(
     @InjectRepository(Zone)
     private readonly zonesRepository: Repository<Zone>,
-    private readonly branchesService: BranchesService
-  ) { }
+    private readonly branchesService: BranchesService,
+  ) {}
 
   async findById(id: string): Promise<Zone | null> {
     return this.zonesRepository.findOne({
       where: { id, deletedAt: IsNull() },
       relations: {
-        branch: true
-      }
+        branch: true,
+      },
     });
   }
 
@@ -29,7 +32,7 @@ export class ZonesService {
     return this.zonesRepository.find({
       where: { deletedAt: IsNull() },
       relations: { branch: true },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -37,14 +40,17 @@ export class ZonesService {
     return this.zonesRepository.find({
       where: { branchId, deletedAt: IsNull() },
       relations: { branch: true },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
-  async findByIdAndBranchId(id: string, branchId: string): Promise<Zone | null> {
+  async findByIdAndBranchId(
+    id: string,
+    branchId: string,
+  ): Promise<Zone | null> {
     return this.zonesRepository.findOne({
       where: { id, branchId, deletedAt: IsNull() },
-      relations: { branch: true }
+      relations: { branch: true },
     });
   }
 
@@ -59,12 +65,14 @@ export class ZonesService {
       where: {
         name: createZoneDto.name,
         branchId: createZoneDto.branchId,
-        deletedAt: IsNull()
-      }
+        deletedAt: IsNull(),
+      },
     });
 
     if (existing) {
-      throw new ConflictException('Zone with the same name already exists in this branch');
+      throw new ConflictException(
+        'Zone with the same name already exists in this branch',
+      );
     }
 
     const zone = this.zonesRepository.create(createZoneDto);
@@ -94,17 +102,19 @@ export class ZonesService {
     const existing = await this.zonesRepository.findOne({
       where: {
         name: targetName,
-        branchId: targetBranchId!,
-        deletedAt: IsNull()
-      }
+        branchId: targetBranchId,
+        deletedAt: IsNull(),
+      },
     });
 
     if (existing && existing.id !== zone.id) {
-      throw new ConflictException('Zone with the same name already exists in this branch');
+      throw new ConflictException(
+        'Zone with the same name already exists in this branch',
+      );
     }
 
     const updatedZone = await this.zonesRepository.update(id, {
-      ...updateZoneDto
+      ...updateZoneDto,
     });
 
     return await this.zonesRepository.save(updatedZone.raw);

@@ -18,4 +18,4 @@ import { UsersModule } from '@modules/users/users.module';
   providers: [ReservationsService],
   exports: [ReservationsService],
 })
-export class ReservationsModule { }
+export class ReservationsModule {}

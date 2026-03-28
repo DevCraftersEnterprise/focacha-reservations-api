@@ -2,7 +2,18 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { Role } from '@common/enums/role.enum';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { CancelReservationDto } from './dto/cancel-reservation.dto';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { FindReservationsDto } from './dto/find-reservations.dto';
@@ -15,11 +26,15 @@ import { ReservationsDayDetailDto } from './dto/reservations-day-detail.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN, Role.CASHIER)
 export class ReservationsController {
-  constructor(private readonly reservationsService: ReservationsService) { }
+  constructor(private readonly reservationsService: ReservationsService) {}
 
   @Get()
   findAll(@Query() filters: FindReservationsDto, @Req() req: any) {
-    return this.reservationsService.findAll(filters, req.user.userId, req.user.role);
+    return this.reservationsService.findAll(
+      filters,
+      req.user.userId,
+      req.user.role,
+    );
   }
 
   @Get('calendar/summary')
@@ -42,7 +57,11 @@ export class ReservationsController {
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
-    return this.reservationsService.findOneForUser(id, req.user.userId, req.user.role);
+    return this.reservationsService.findOneForUser(
+      id,
+      req.user.userId,
+      req.user.role,
+    );
   }
 
   @Post()
@@ -51,12 +70,30 @@ export class ReservationsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateReservationDto, @Req() req: any) {
-    return this.reservationsService.update(id, dto, req.user.userId, req.user.role);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateReservationDto,
+    @Req() req: any,
+  ) {
+    return this.reservationsService.update(
+      id,
+      dto,
+      req.user.userId,
+      req.user.role,
+    );
   }
 
   @Patch(':id/cancel')
-  cancel(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CancelReservationDto, @Req() req: any) {
-    return this.reservationsService.cancel(id, dto, req.user.userId, req.user.role);
+  cancel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CancelReservationDto,
+    @Req() req: any,
+  ) {
+    return this.reservationsService.cancel(
+      id,
+      dto,
+      req.user.userId,
+      req.user.role,
+    );
   }
 }
