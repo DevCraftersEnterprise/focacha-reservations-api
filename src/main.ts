@@ -36,7 +36,7 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.CORS_ORIGIN?.split(',') || [
       'http://localhost:3000',
-      'https://9mm9z0g7-3000.usw3.devtunnels.ms',
+      'https://9mm9z0g7-3000.usw3.devtunnels.ms'
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
