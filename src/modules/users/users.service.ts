@@ -21,7 +21,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     @Inject(forwardRef(() => BranchesService))
     private readonly branchesService: BranchesService,
-  ) {}
+  ) { }
 
   async findByEmail(email: string): Promise<User | null> {
     return await this.usersRepository.findOne({
@@ -118,7 +118,7 @@ export class UsersService {
     }
 
     if (updateUserDto.role === Role.ADMIN) {
-      updateUserDto.branchId = undefined;
+      user.branch = null;
     }
 
     if (
@@ -133,17 +133,17 @@ export class UsersService {
       if (!branch) {
         throw new NotFoundException('Branch not found');
       }
+
+      user.branch = branch;
     }
 
     if (updateUserDto.password) {
       user.passwordHash = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    const updatedUser = await this.usersRepository.update(id, {
-      ...updateUserDto,
-    });
+    const updatedUser = Object.assign(user, { ...updateUserDto })
 
-    return await this.usersRepository.save(updatedUser.raw);
+    return await this.usersRepository.save(updatedUser);
   }
 
   async syncBranchCashiers(

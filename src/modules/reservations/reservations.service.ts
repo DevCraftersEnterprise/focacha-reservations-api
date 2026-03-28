@@ -27,7 +27,7 @@ export class ReservationsService {
     private readonly branchesService: BranchesService,
     private readonly zonesService: ZonesService,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   private normalizeTime(value: string): string {
     return value.length === 5 ? `${value}:00` : value;
@@ -357,6 +357,7 @@ export class ReservationsService {
     Object.assign(reservation, {
       cancellationReason: dto.reason ?? null,
       cancelledAt: new Date(),
+      status: ReservationStatus.CANCELLED,
       cancelledByUserId: authenticatedUserId,
       updatedByUserId: authenticatedUserId,
     });

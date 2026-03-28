@@ -17,7 +17,7 @@ export class ZonesService {
     @InjectRepository(Zone)
     private readonly zonesRepository: Repository<Zone>,
     private readonly branchesService: BranchesService,
-  ) {}
+  ) { }
 
   async findById(id: string): Promise<Zone | null> {
     return this.zonesRepository.findOne({
@@ -90,13 +90,15 @@ export class ZonesService {
     const targetBranchId = updateZoneDto.branchId ?? zone.branchId;
     const targetName = updateZoneDto.name ?? zone.name;
 
-    let newBranch: Branch | null = null;
-    if (updateZoneDto.branchId !== undefined) {
-      newBranch = await this.branchesService.findById(updateZoneDto.branchId);
 
-      if (!newBranch) {
+    if (updateZoneDto.branchId !== undefined) {
+      const branch = await this.branchesService.findById(updateZoneDto.branchId);
+
+      if (!branch) {
         throw new NotFoundException('Branch not found');
       }
+
+      zone.branch = branch;
     }
 
     const existing = await this.zonesRepository.findOne({
@@ -113,11 +115,9 @@ export class ZonesService {
       );
     }
 
-    const updatedZone = await this.zonesRepository.update(id, {
-      ...updateZoneDto,
-    });
+    const updatedZone = Object.assign(zone, { ...updateZoneDto });
 
-    return await this.zonesRepository.save(updatedZone.raw);
+    return await this.zonesRepository.save(updatedZone);
   }
 
   async remove(id: string): Promise<void> {
