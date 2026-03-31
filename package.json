@@ -5,6 +5,10 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -22,7 +26,13 @@
     "security:audit": "npm audit",
     "security:audit:fix": "npm audit fix",
     "security:check": "npm audit --audit-level=high",
-    "prestart:prod": "npm run security:check"
+    "prestart:prod": "npm run security:check",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm migration:generate -- -d src/data-source.ts",
+    "migration:create": "npm run typeorm migration:create",
+    "migration:run": "npm run typeorm migration:run -- -d src/data-source.ts",
+    "migration:revert": "npm run typeorm migration:revert -- -d src/data-source.ts",
+    "migration:show": "npm run typeorm migration:show -- -d src/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
