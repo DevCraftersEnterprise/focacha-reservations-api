@@ -12,6 +12,7 @@ import { BranchesModule } from './modules/branches/branches.module';
 import { ZonesModule } from './modules/zones/zones.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { SecurityLoggingInterceptor } from './common/interceptors/security-logging.interceptor';
+import { PrinterModule } from './modules/printer/printer.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { SecurityLoggingInterceptor } from './common/interceptors/security-loggi
     BranchesModule,
     ZonesModule,
     ReservationsModule,
+    PrinterModule
   ],
   controllers: [AuthController],
   providers: [

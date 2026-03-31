@@ -18,6 +18,7 @@ import { CancelReservationDto } from './dto/cancel-reservation.dto';
 import { FindReservationsDto } from './dto/find-reservations.dto';
 import { ReservationsCalendarDto } from './dto/reservations-calendar.dto';
 import { ReservationsDayDetailDto } from './dto/reservations-day-detail.dto';
+import { PrinterService } from '@modules/printer/printer.service';
 
 @Injectable()
 export class ReservationsService {
@@ -27,6 +28,7 @@ export class ReservationsService {
     private readonly branchesService: BranchesService,
     private readonly zonesService: ZonesService,
     private readonly usersService: UsersService,
+    private readonly printersService: PrinterService
   ) { }
 
   private normalizeTime(value: string): string {
@@ -413,5 +415,39 @@ export class ReservationsService {
     }
 
     return await qb.getMany();
+  }
+
+  async createReservationDocument(reservationId: string): Promise<PDFKit.PDFDocument> {
+    const reservation = await this.findById(reservationId);
+
+    if (!reservation) {
+      throw new NotFoundException('Reservation not found');
+    }
+
+    // Formatear la fecha
+    const reservationDate = new Date(reservation.reservationDate);
+    const formatter = new Intl.DateTimeFormat('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit',
+    });
+    const formattedDate = formatter.format(reservationDate);
+
+    // Formatear la hora (de formato 24h a 12h con am/pm)
+    const [hours, minutes] = reservation.reservationTime.split(':');
+    const hour = parseInt(hours);
+    const period = hour >= 12 ? 'pm' : 'am';
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const formattedTime = `${hour12}:${minutes}${period}`;
+
+    const doc = this.printersService.createReservationPdf({
+      customerName: reservation.customerName,
+      guestCount: reservation.guestCount,
+      zoneName: reservation.zone.name,
+      formattedDate,
+      formattedTime,
+    });
+
+    return doc;
   }
 }

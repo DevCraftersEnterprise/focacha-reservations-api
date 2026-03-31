@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { CancelReservationDto } from './dto/cancel-reservation.dto';
@@ -21,12 +22,13 @@ import { ReservationsCalendarDto } from './dto/reservations-calendar.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { ReservationsService } from './reservations.service';
 import { ReservationsDayDetailDto } from './dto/reservations-day-detail.dto';
+import type { Response } from 'express';
 
 @Controller('reservations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN, Role.CASHIER)
 export class ReservationsController {
-  constructor(private readonly reservationsService: ReservationsService) {}
+  constructor(private readonly reservationsService: ReservationsService) { }
 
   @Get()
   findAll(@Query() filters: FindReservationsDto, @Req() req: any) {
@@ -54,6 +56,20 @@ export class ReservationsController {
       req.user.role,
     );
   }
+
+  @Get(':id/document')
+  async getDocument(
+    @Res() response: Response,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const pdfDoc = await this.reservationsService.createReservationDocument(id);
+
+    response.setHeader('Content-Type', 'application/pdf');
+
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {

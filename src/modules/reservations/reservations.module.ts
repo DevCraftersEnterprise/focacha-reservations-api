@@ -6,6 +6,7 @@ import { Reservation } from './entities/reservation.entity';
 import { BranchesModule } from '@modules/branches/branches.module';
 import { ZonesModule } from '@modules/zones/zones.module';
 import { UsersModule } from '@modules/users/users.module';
+import { PrinterModule } from '@modules/printer/printer.module';
 
 @Module({
   imports: [
@@ -13,9 +14,10 @@ import { UsersModule } from '@modules/users/users.module';
     BranchesModule,
     ZonesModule,
     UsersModule,
+    PrinterModule
   ],
   controllers: [ReservationsController],
   providers: [ReservationsService],
   exports: [ReservationsService],
 })
-export class ReservationsModule {}
+export class ReservationsModule { }
