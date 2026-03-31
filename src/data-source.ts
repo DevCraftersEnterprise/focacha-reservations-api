@@ -1,9 +1,18 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import { join } from 'path';
+import { register } from 'tsconfig-paths';
 
 // Load environment variables
 config();
+
+// Register TypeScript path aliases for TypeORM CLI
+register({
+    baseUrl: join(__dirname, '..'),
+    paths: {
+        '@*': ['src/*'],
+    },
+});
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
