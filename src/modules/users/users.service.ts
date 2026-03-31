@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { In, IsNull, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -49,9 +49,12 @@ export class UsersService {
     });
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll(userId: string): Promise<User[]> {
     return this.usersRepository.find({
-      where: { deletedAt: IsNull() },
+      where: {
+        id: Not(userId),
+        deletedAt: IsNull()
+      },
       relations: { branch: true },
       order: { createdAt: 'DESC' },
     });

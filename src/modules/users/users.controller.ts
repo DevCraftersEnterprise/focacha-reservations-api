@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -21,11 +22,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(
+    @Req() req: any
+  ) {
+    return this.usersService.findAll(req.user.userId);
   }
 
   @Get(':id')
