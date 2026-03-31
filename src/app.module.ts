@@ -30,6 +30,9 @@ import { SecurityLoggingInterceptor } from './common/interceptors/security-loggi
         autoLoadEntities: true,
         synchronize: configService.get<string>('DB_SYNC') === 'true',
         logging: configService.get<string>('DB_LOGGING') === 'true',
+        ssl: configService.get<string>('NODE_ENV') === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
       }),
     }),
     // Security: Rate limiting to prevent brute force attacks
